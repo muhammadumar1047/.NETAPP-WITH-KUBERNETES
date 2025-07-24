@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - backend
+
+  myapi:
+    build:
+      context: ./MyApi
+      dockerfile: Dockerfile
+    container_name: myapi
+    ports:
+      - "65215:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=MyDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      - sqlserver
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  sql_data:

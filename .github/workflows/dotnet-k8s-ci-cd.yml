@@ -1,0 +1,35 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_ENVIRONMENT: Development
+  APP_NAME: LeadGenApp
+  MY_API_KEY: ${{ secrets.MY_API_KEY }} # secret added via GitHub -> Settings -> Secrets
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.0'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build the app
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal

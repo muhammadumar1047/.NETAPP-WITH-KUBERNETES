@@ -1,35 +1,42 @@
-name: .NET CI
+name: .NET 8 CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
-
-env:
-  DOTNET_ENVIRONMENT: Development
-  APP_NAME: LeadGenApp
-  MY_API_KEY: ${{ secrets.MY_API_KEY }} # secret added via GitHub -> Settings -> Secrets
+    branches: [ "main" ]
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      MY_SECRET_KEY: ${{ secrets.MY_SECRET_KEY }}
+      DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
 
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.0'
+        dotnet-version: '8.0.x'
 
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build the app
-      run: dotnet build --configuration Release --no-restore
+    - name: Build solution
+      run: dotnet build --no-restore
 
-    - name: Run tests
+    - name: Run unit tests
       run: dotnet test --no-build --verbosity normal
+
+    - name: Publish project
+      run: dotnet publish ./MyApi/MyApi.csproj -c Release -o ./publish
+
+    - name: Upload published files
+      uses: actions/upload-artifact@v4
+      with:
+        name: published-api
+        path: ./publish
